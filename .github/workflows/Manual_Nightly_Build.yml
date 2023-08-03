@@ -28,18 +28,19 @@ jobs:
           go install github.com/crazy-max/xgo@latest
           sudo apt install upx zip -y
           echo "BUILD_TIME=$(TZ=Asia/Shanghai date +%F)" >> $GITHUB_ENV
+          echo "HASH_CODE=$(date +%Y%m%d%H%M%S | md5sum | cut -b 1-8)" >> $GITHUB_ENV
 
       - name: Build
         run: |
           cd alist
           bash build.sh dev
           cd dist
-          zip -q -r ../alist_Nightly_${{ env.BUILD_TIME }}.zip *
+          zip -q -r ../alist_Manual_${{ env.BUILD_TIME }}_${{ env.HASH_CODE }}.zip *
 
       - name: Uploading to GH-Release
         uses: ncipollo/release-action@v1.8.6
         with:
-          artifacts: "alist/alist_Nightly_${{ env.BUILD_TIME }}.zip"
-          name: "Nightly_${{ env.BUILD_TIME }}"
-          tag: " alist_Nightly_${{ env.BUILD_TIME }}"
+          artifacts: "alist/alist_Manual_${{ env.BUILD_TIME }}_${{ env.HASH_CODE }}.zip"
+          name: "Nightly_${{ env.BUILD_TIME }}_${{ env.HASH_CODE }}"
+          tag: " alist_Nightly_${{ env.BUILD_TIME }}_${{ env.HASH_CODE }}"
           token: ${{ secrets.GITHUB_TOKEN }}
