@@ -1,0 +1,46 @@
+name: Auto Nightly Build
+
+on:
+  schedule:
+    - cron: '30 15 * * *'
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        platform: [ubuntu-latest]
+        go-version: [ '1.20' ]
+    name: Build
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ matrix.go-version }}
+
+      - name: Clone
+        run: |
+          git clone https://github.com/alist-org/alist
+
+      - name: Install dependencies
+        run: |
+          sudo snap install zig --classic --beta
+          docker pull crazymax/xgo:latest
+          go install github.com/crazy-max/xgo@latest
+          sudo apt install upx zip -y
+          echo "BUILD_TIME=$(TZ=Asia/Shanghai date +%F)" >> $GITHUB_ENV
+
+      - name: Build
+        run: |
+          cd alist
+          bash build.sh dev
+          cd dist
+          zip -q -r ../alist_Nightly_${{ env.BUILD_TIME }}.zip *
+
+      - name: Uploading to GH-Release
+        uses: ncipollo/release-action@v1.8.6
+        with:
+          artifacts: "alist/alist_Nightly_${{ env.BUILD_TIME }}.zip"
+          name: "Nightly_${{ env.BUILD_TIME }}"
+          tag: " alist_Nightly_${{ env.BUILD_TIME }}"
+          token: ${{ secrets.GITHUB_TOKEN }}
