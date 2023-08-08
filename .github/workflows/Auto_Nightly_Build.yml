@@ -37,14 +37,10 @@ jobs:
           cd dist
           zip -q -r ../alist_Nightly_${{ env.BUILD_TIME }}.zip *
 
-      - name: Release nightly
-        uses: irongut/EditRelease@v1.2.0
-        with:
-          token: ${{ secrets.GH_TOKEN }}
-          id: ${{ github.event.release.id }}
-          prerelease: false
-
       - name: Upload assets
         uses: softprops/action-gh-release@v1
         with:
           files: "alist/alist_Nightly_${{ env.BUILD_TIME }}.zip"
+          name: "Nightly"
+          tag_name: "Nightly"
+          prerelease: false
